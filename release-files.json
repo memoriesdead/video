@@ -23,13 +23,18 @@
     },
     {
       "path": "README.md",
-      "size": 2498,
-      "sha256": "d34d2e0a223cabaf26faf686c731d8a58fcc2b520aa3ccf90dcd4e4e68f0d552"
+      "size": 6603,
+      "sha256": "5bc3c92b05ed4c081f34d19a1c928d7a84ced6e1b5c0a8ef57258ddacf8750ff"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
       "size": 683,
       "sha256": "8a598df612c9e8f7dcda2c565267e4d03cbcce67a24034b2c3015573e93f6cc1"
+    },
+    {
+      "path": "assets/benchmark-dashboard.svg",
+      "size": 5656,
+      "sha256": "e0d1c35d1346c858cdffbed0ec913f39f2f1c4756a2d7c6833420802e3b41c31"
     },
     {
       "path": "backends/wangp/LICENSE.txt",
@@ -123,8 +128,8 @@
     },
     {
       "path": "tools/check_release.py",
-      "size": 23753,
-      "sha256": "559a57b71beccb2344fa318edfd58643ea8c03aacfe4ea642cb5567ae20133d9"
+      "size": 23761,
+      "sha256": "9ea40ca87963d6b2f1a8f131807bcf61c6eb41d363a7dd4a1dc3178f43528a9b"
     },
     {
       "path": "tools/engine.py",

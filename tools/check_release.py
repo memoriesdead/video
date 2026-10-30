@@ -45,7 +45,7 @@ TEXT_SUFFIXES = {
     ".c", ".cu", ".cuh", ".h", ".hpp", ".hh", ".hxx", ".inc", ".in",
     ".patch", ".diff", ".json", ".md", ".txt", ".toml", ".yaml", ".yml",
     ".rs", ".lock", ".jinja", ".j2", ".js", ".ts", ".html", ".css",
-    ".make", ".mk", ".rc", ".s", ".metal", ".wgsl", ".vert", ".frag",
+    ".make", ".mk", ".rc", ".s", ".metal", ".wgsl", ".vert", ".frag", ".svg",
     ".comp", ".g4", ".properties", ".text", ".tcl",
 }
 TEXT_NAMES = {"license", "notice", "copying", "authors", "contributors", "makefile", "dockerfile"}

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="dashboard-title dashboard-desc">
+  <title id="dashboard-title">Local Video Engine historical performance</title>
+  <desc id="dashboard-desc">One RTX 5090: warm task median 9.50 seconds from four samples, first-task median 25.11 seconds from two samples. H3-family video with audio, 640 by 384, 107 frames, 24 FPS and eight steps. Processing and saving included; process startup separate and repeated conditioning warm. Twelve saved outputs passed full video and audio decode and same-profile repeatability. The overall coordinator run failed. No public-export GPU test, quality proof or attributable patch-bundle gain.</desc>
+  <rect width="1200" height="650" rx="24" fill="#0b1020"/>
+  <path d="M44 46H73" stroke="#ffbf78" stroke-width="4" stroke-linecap="round"/>
+  <text x="87" y="52" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="2">LOCAL VIDEO ENGINE</text>
+  <rect x="874" y="27" width="282" height="38" rx="19" fill="#141e33" stroke="#2b3953"/>
+  <circle cx="896" cy="46" r="4" fill="#63e3ee"/>
+  <text x="911" y="52" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="16">HISTORICAL · 2026-10-30</text>
+  <text x="44" y="116" fill="#eef4ff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="-1">Finished video + audio, timed locally.</text>
+  <text x="44" y="151" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="21">One RTX 5090. One H3-family profile. Processing and saving included.</text>
+
+  <rect x="44" y="183" width="544" height="181" rx="18" fill="#141e33" stroke="#3e3840"/>
+  <rect x="44" y="205" width="4" height="48" rx="2" fill="#ffbf78"/>
+  <text x="70" y="219" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="1.5">WARM TASK MEDIAN</text>
+  <text x="67" y="307" fill="#ffbf78" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="90" font-weight="700" letter-spacing="-4">9.50</text>
+  <text x="282" y="303" fill="#ffbf78" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="35" font-weight="500">s</text>
+  <text x="70" y="341" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="19">4 samples · repeated conditioning warm</text>
+
+  <rect x="612" y="183" width="544" height="181" rx="18" fill="#141e33" stroke="#284249"/>
+  <rect x="612" y="205" width="4" height="48" rx="2" fill="#63e3ee"/>
+  <text x="638" y="219" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="1.5">FIRST-TASK MEDIAN</text>
+  <text x="635" y="307" fill="#63e3ee" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="90" font-weight="700" letter-spacing="-4">25.11</text>
+  <text x="898" y="303" fill="#63e3ee" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="35" font-weight="500">s</text>
+  <text x="638" y="341" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="19">2 samples · process startup separate</text>
+
+  <rect x="44" y="385" width="1112" height="91" rx="16" fill="#141e33"/>
+  <line x1="327" y1="406" x2="327" y2="455" stroke="#2b3953"/>
+  <line x1="576" y1="406" x2="576" y2="455" stroke="#2b3953"/>
+  <line x1="825" y1="406" x2="825" y2="455" stroke="#2b3953"/>
+  <text x="70" y="412" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="15" letter-spacing="1">CANVAS</text>
+  <text x="70" y="449" fill="#eef4ff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="29" font-weight="600">640 × 384</text>
+  <text x="354" y="412" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="15" letter-spacing="1">SEQUENCE</text>
+  <text x="354" y="449" fill="#eef4ff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="29" font-weight="600">107 frames</text>
+  <text x="603" y="412" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="15" letter-spacing="1">FRAME RATE</text>
+  <text x="603" y="449" fill="#eef4ff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="29" font-weight="600">24 FPS</text>
+  <text x="852" y="412" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="15" letter-spacing="1">SAMPLING</text>
+  <text x="852" y="449" fill="#eef4ff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="29" font-weight="600">8 steps</text>
+
+  <rect x="44" y="498" width="544" height="95" rx="16" fill="#141e33"/>
+  <text x="69" y="537" fill="#63e3ee" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">12 saved outputs fully decoded</text>
+  <text x="69" y="569" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="18">Video + audio · same-profile repeatability passed</text>
+  <rect x="612" y="498" width="544" height="95" rx="16" fill="#141e33"/>
+  <text x="637" y="537" fill="#ffbf78" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">Overall coordinator run: FAILED</text>
+  <text x="637" y="569" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="18">Process-identity guard interrupted final exit</text>
+  <text x="44" y="626" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="17">Historical stack · Public-export GPU test, quality and attributable bundle gain remain unproven</text>
+</svg>
