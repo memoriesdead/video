@@ -1,4 +1,4 @@
-<h1 align="center">Local Video Engine</h1>
+<h1 align="center">Video</h1>
 
 <p align="center"><strong>9.50 seconds per warm audiovisual task on one RTX 5090.</strong><br>
 Local execution. Unchanged stored weights. Measured results with their limits.</p>

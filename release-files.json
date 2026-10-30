@@ -23,8 +23,8 @@
     },
     {
       "path": "README.md",
-      "size": 6603,
-      "sha256": "5bc3c92b05ed4c081f34d19a1c928d7a84ced6e1b5c0a8ef57258ddacf8750ff"
+      "size": 6590,
+      "sha256": "0364113c8edec8dc293c47cb3c8b27cc10c99a3731b403837e47d5162e1512c0"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -33,8 +33,8 @@
     },
     {
       "path": "assets/benchmark-dashboard.svg",
-      "size": 5656,
-      "sha256": "e0d1c35d1346c858cdffbed0ec913f39f2f1c4756a2d7c6833420802e3b41c31"
+      "size": 5630,
+      "sha256": "10fff6bbb8049510a6b0668d22df4b12884ee749d1cf7aefdb611828cabad0c3"
     },
     {
       "path": "backends/wangp/LICENSE.txt",

@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="dashboard-title dashboard-desc">
-  <title id="dashboard-title">Local Video Engine historical performance</title>
+  <title id="dashboard-title">Video historical performance</title>
   <desc id="dashboard-desc">One RTX 5090: warm task median 9.50 seconds from four samples, first-task median 25.11 seconds from two samples. H3-family video with audio, 640 by 384, 107 frames, 24 FPS and eight steps. Processing and saving included; process startup separate and repeated conditioning warm. Twelve saved outputs passed full video and audio decode and same-profile repeatability. The overall coordinator run failed. No public-export GPU test, quality proof or attributable patch-bundle gain.</desc>
   <rect width="1200" height="650" rx="24" fill="#0b1020"/>
   <path d="M44 46H73" stroke="#ffbf78" stroke-width="4" stroke-linecap="round"/>
-  <text x="87" y="52" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="2">LOCAL VIDEO ENGINE</text>
+  <text x="87" y="52" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="2">VIDEO</text>
   <rect x="874" y="27" width="282" height="38" rx="19" fill="#141e33" stroke="#2b3953"/>
   <circle cx="896" cy="46" r="4" fill="#63e3ee"/>
   <text x="911" y="52" fill="#a7b4cc" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="16">HISTORICAL · 2026-10-30</text>
