@@ -5,6 +5,9 @@
 **25.11 seconds**. These are medians from four warm tasks and two first tasks.
 Task timing includes processing and saving; process startup is separate.
 
+[Compare with frontier services and local video tools](benchmarks/comparison.md)
+or read the [benchmark method](benchmarks/protocol.md).
+
 The full coordinator failed its process identity guard before final exit.
 Completed saved media passed a separate full video/audio decode and repeatability
 audit. Those completed tasks supply the numbers above; the overall run remains

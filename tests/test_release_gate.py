@@ -1,5 +1,6 @@
 """CPU-only release boundary fixtures; every filesystem mutation uses a temp tree."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -44,6 +45,44 @@ class ReleaseGateTests(unittest.TestCase):
 
     def assert_category(self, data, category):
         self.assertIn(category, [finding["category"] for finding in data["findings"]])
+
+    def git(self, *args):
+        return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, check=True)
+
+    def init_git(self):
+        self.git("init", "-q", "-b", "main")
+        self.git("config", "user.name", "Release Fixture")
+        self.git("config", "user.email", "fixture@example.invalid")
+        self.git("config", "core.autocrlf", "false")
+
+    def commit(self, message):
+        self.git("add", "--all")
+        self.git("commit", "-qm", message)
+        return self.git("rev-parse", "HEAD").stdout.strip()
+
+    def history_file(self, approved):
+        path = self.base / "history.json"
+        path.write_text(json.dumps(approved))
+        return str(path)
+
+    def initial_history(self):
+        self.assertEqual(0, self.build()[0].returncode)
+        self.init_git()
+        commit = self.commit("Initial fixture")
+        pin = hashlib.sha256((self.root / "release-files.json").read_bytes()).hexdigest()
+        return commit, pin
+
+    def update_payload(self):
+        (self.root / "README.md").write_text("Updated public source.\n")
+        self.assertEqual(0, self.build()[0].returncode)
+
+    def unchecked_manifest(self):
+        entries = [{"path": name, "size": (self.root / name).stat().st_size,
+                    "sha256": hashlib.sha256((self.root / name).read_bytes()).hexdigest()}
+                   for name in sorted(self.paths)]
+        path = self.root / "release-files.json"
+        path.write_text(json.dumps({"schema_version": 1, "files": entries}))
+        return hashlib.sha256(path.read_bytes()).hexdigest()
 
     def test_explicit_list_builds_deterministic_manifest(self):
         result, data = self.build()
@@ -238,12 +277,8 @@ class ReleaseGateTests(unittest.TestCase):
     @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
     def test_git_index_exact_allowlist_and_single_commit_history(self):
         self.build()
-        def git(*args):
-            return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, check=True)
-        git("init", "-q")
-        git("config", "user.name", "Release Fixture")
-        git("config", "user.email", "fixture@example.invalid")
-        git("config", "core.autocrlf", "false")
+        self.init_git()
+        git = self.git
         git("add", "--all")
         git("commit", "-qm", "Initial fixture")
         result, data = self.run_gate("--check-git")
@@ -262,12 +297,8 @@ class ReleaseGateTests(unittest.TestCase):
     @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
     def test_clean_index_cannot_hide_a_private_committed_tree(self):
         self.build()
-        def git(*args):
-            return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, check=True)
-        git("init", "-q")
-        git("config", "user.name", "Release Fixture")
-        git("config", "user.email", "fixture@example.invalid")
-        git("config", "core.autocrlf", "false")
+        self.init_git()
+        git = self.git
         (self.root / "leak.txt").write_text("private\n")
         git("add", "--all")
         git("commit", "-qm", "Private tree fixture")
@@ -275,6 +306,158 @@ class ReleaseGateTests(unittest.TestCase):
         result, data = self.run_gate("--check-git")
         self.assertNotEqual(0, result.returncode)
         self.assert_category(data, "git-commit-mismatch")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_approved_history_allows_staged_update_and_two_commits(self):
+        old, pin = self.initial_history()
+        approved = self.history_file({old: pin})
+        self.update_payload()
+        self.git("add", "--all")
+        result, data = self.run_gate("--check-git", "--approved-history", approved)
+        self.assertEqual(0, result.returncode, data)
+        self.commit("Public update")
+        result, data = self.run_gate("--check-git", "--approved-history", approved)
+        self.assertEqual(0, result.returncode, data)
+        result, data = self.run_gate("--check-git")
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_approved_history_still_checks_current_head_and_index(self):
+        old, pin = self.initial_history()
+        approved = self.history_file({old: pin})
+        self.update_payload()
+        result, data = self.run_gate("--check-git", "--approved-history", approved)
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-index-content-mismatch")
+        self.commit("Public update")
+        self.update_payload()
+        (self.root / "README.md").write_text("Another public change.\n")
+        self.assertEqual(0, self.build()[0].returncode)
+        self.git("add", "--all")
+        result, data = self.run_gate("--check-git", "--approved-history", approved)
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-commit-mismatch")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_approved_history_rejects_private_content_even_with_valid_pin(self):
+        secret = "hf_" + "B" * 32
+        (self.root / "README.md").write_text(secret + "\n")
+        pin = self.unchecked_manifest()
+        self.init_git()
+        old = self.commit("Private content fixture")
+        self.update_payload()
+        self.commit("Clean current payload")
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: pin}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "credential")
+        self.assertNotIn(secret, result.stdout + result.stderr)
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_approved_history_rejects_unlisted_past_file(self):
+        self.build()
+        pin = hashlib.sha256((self.root / "release-files.json").read_bytes()).hexdigest()
+        self.init_git()
+        (self.root / "private.txt").write_text("unlisted past data\n")
+        old = self.commit("Unlisted historical fixture")
+        (self.root / "private.txt").unlink()
+        self.update_payload()
+        self.commit("Clean current payload")
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: pin}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-tree-mismatch")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_history_manifest_pin_and_payload_hash_are_both_checked(self):
+        old, pin = self.initial_history()
+        self.update_payload()
+        self.commit("Public update")
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: "0" * 64}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-manifest-hash")
+        self.git("checkout", "-q", "--orphan", "forged")
+        document = json.loads((self.root / "release-files.json").read_text())
+        document["files"][0]["sha256"] = "0" * 64
+        (self.root / "release-files.json").write_text(json.dumps(document))
+        forged_pin = hashlib.sha256((self.root / "release-files.json").read_bytes()).hexdigest()
+        forged = self.commit("Forged manifest fixture")
+        self.git("branch", "-D", "main")
+        self.update_payload()
+        self.commit("Current safe payload")
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({forged: forged_pin}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-payload-hash")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_history_rejects_unapproved_reachable_side_branch(self):
+        old, pin = self.initial_history()
+        self.update_payload()
+        current = self.commit("Public update")
+        self.git("checkout", "-qb", "unapproved-side", old)
+        self.git("commit", "--allow-empty", "-qm", "Unapproved side branch")
+        self.git("checkout", "-q", "main")
+        self.assertEqual(current, self.git("rev-parse", "HEAD").stdout.strip())
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: pin}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-unapproved")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_history_limits_objects_before_reading_them(self):
+        name = "oversized.py"
+        (self.root / name).write_bytes(b"#" * (self.gate.MAX_FILE_BYTES + 1))
+        self.paths.append(name)
+        pin = self.unchecked_manifest()
+        self.init_git()
+        old = self.commit("Oversized old source fixture")
+        self.paths.remove(name)
+        (self.root / name).unlink()
+        self.update_payload()
+        self.commit("Current safe source")
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: pin}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-size-limit")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_history_rejects_grafts_and_shallow_boundaries(self):
+        old, pin = self.initial_history()
+        self.update_payload()
+        head = self.commit("Public update")
+        approved = self.history_file({old: pin})
+        grafts = self.root / ".git" / "info" / "grafts"
+        grafts.write_text(head + "\n")
+        result, data = self.run_gate("--check-git", "--approved-history", approved)
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-grafts")
+        grafts.unlink()
+        (self.root / ".git" / "shallow").write_text(head + "\n")
+        result, data = self.run_gate("--check-git", "--approved-history", approved)
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-shallow")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_history_approval_must_be_external_and_well_formed(self):
+        old, pin = self.initial_history()
+        self.update_payload()
+        inside = self.root / "history.json"
+        inside.write_text(json.dumps({old: pin}))
+        self.paths.append("history.json")
+        self.assertEqual(0, self.build()[0].returncode)
+        self.commit("Public update")
+        result, data = self.run_gate("--check-git", "--approved-history", str(inside))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "invalid-input-or-io")
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: "invalid"}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "invalid-input-or-io")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git unavailable")
+    def test_history_commit_count_has_a_bounded_read_limit(self):
+        old, pin = self.initial_history()
+        for number in range(self.gate.MAX_HISTORY_COMMITS + 1):
+            self.git("commit", "--allow-empty", "-qm", "Bound fixture " + str(number))
+        result, data = self.run_gate("--check-git", "--approved-history", self.history_file({old: pin}))
+        self.assertNotEqual(0, result.returncode)
+        self.assert_category(data, "git-history-commit-limit")
 
 
 if __name__ == "__main__":

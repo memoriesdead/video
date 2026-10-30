@@ -3,6 +3,8 @@
 
 Build: --build-manifest approved-paths.json (a separately reviewed JSON path array).
 Check: --check [--archive source.zip] [--check-git]. No upload operations exist.
+Updates: add --approved-history external.json, mapping full commit IDs to the
+SHA256 of each previously approved commit's release manifest. Old trees are audited.
 """
 import argparse
 import hashlib
@@ -18,6 +20,9 @@ import zipfile
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 MAX_TOTAL_BYTES = 20 * 1024 * 1024
+MAX_HISTORY_COMMITS = 64
+MAX_HISTORY_ENTRIES = 4096
+MAX_HISTORY_BYTES = 64 * 1024 * 1024
 REQUIRED_FILES = (
     "LICENSE", "LICENSES.md", "THIRD_PARTY_NOTICES.md",
     "backends/wangp/LICENSE.txt", "backends/wangp/mmgp-LICENSE.md",
@@ -225,13 +230,20 @@ def check_archive(archive, expected):
     return failures
 
 
-def check_git(root, expected):
+def check_git(root, expected, approved_history=None, manifest_name="release-files.json"):
     def git(*args):
-        return subprocess.run(["git", "-C", str(root), *args], check=True,
+        return subprocess.run(["git", "--no-replace-objects", "-C", str(root), *args], check=True,
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30).stdout
     failures = []
     if Path(os.fsdecode(git("rev-parse", "--show-toplevel")).strip()).resolve() != root:
         return [finding(".git", "git-root-mismatch")]
+    grafts = Path(os.fsdecode(git("rev-parse", "--git-path", "info/grafts")).strip())
+    if not grafts.is_absolute():
+        grafts = root / grafts
+    if grafts.exists() or os.environ.get("GIT_GRAFT_FILE"):
+        return [finding(".git", "git-history-grafts")]
+    if git("rev-parse", "--is-shallow-repository").strip() != b"false":
+        return [finding(".git", "git-history-shallow")]
     algorithm = os.fsdecode(git("rev-parse", "--show-object-format")).strip()
     hashes = {path: hashlib.new(algorithm, b"blob " + str(len(content)).encode() + b"\0" + content).hexdigest()
               for path, content in expected.items()}
@@ -250,21 +262,135 @@ def check_git(root, expected):
         for path in staged:
             if staged[path] != hashes[path]:
                 failures.append(finding(path, "git-index-content-mismatch"))
-    count = int(git("rev-list", "--all", "--count").strip() or b"0")
-    if count > 1:
+    commits = git("rev-list", "--all", "--max-count=" + str(MAX_HISTORY_COMMITS + 2)).decode("ascii").splitlines()
+    if len(commits) > MAX_HISTORY_COMMITS + 1:
+        return failures + [finding(".git", "git-history-commit-limit")]
+    if approved_history is None and len(commits) > 1:
         failures.append(finding(".git", "git-history"))
-    elif count == 1:
-        committed = {}
-        for record in git("ls-tree", "-rz", "HEAD").split(b"\0"):
-            if record:
-                metadata, path = record.split(b"\t", 1)
-                mode, kind, object_id = metadata.split()
-                path = os.fsdecode(path)
-                if kind != b"blob" or mode not in {b"100644", b"100755"}:
-                    failures.append(finding(path, "git-commit-mismatch"))
-                committed[path] = object_id.decode("ascii")
-        if committed != hashes:
-            failures.append(finding(".git", "git-commit-mismatch"))
+        return failures
+    approved = approved_history or {}
+    if len(approved) > MAX_HISTORY_COMMITS or any(len(commit) != hashlib.new(algorithm).digest_size * 2 for commit in approved):
+        return failures + [finding(".git", "invalid-history-approval")]
+    cache, read_bytes = {}, 0
+
+    def read_object(object_id, kind, path):
+        nonlocal read_bytes
+        if object_id in cache:
+            return cache[object_id]
+        size = int(git("cat-file", "-s", object_id))
+        if size > MAX_FILE_BYTES or read_bytes + size > MAX_HISTORY_BYTES:
+            failures.append(finding(path, "git-history-size-limit"))
+            return None
+        content = git("cat-file", kind, object_id)
+        if len(content) != size:
+            raise ValueError("object-size-mismatch")
+        read_bytes += size
+        cache[object_id] = content
+        return content
+
+    def tree_files(commit):
+        pending = [("", git("rev-parse", commit + "^{tree}").decode("ascii").strip())]
+        files, entries = {}, 0
+        oid_bytes = hashlib.new(algorithm).digest_size
+        while pending:
+            prefix, object_id = pending.pop()
+            content = read_object(object_id, "tree", ".git")
+            if content is None:
+                return None
+            position = 0
+            while position < len(content):
+                space = content.index(b" ", position)
+                end = content.index(b"\0", space)
+                mode = content[position:space]
+                path = prefix + content[space + 1:end].decode("utf-8")
+                object_id = content[end + 1:end + 1 + oid_bytes].hex()
+                position = end + 1 + oid_bytes
+                entries += 1
+                if entries > MAX_HISTORY_ENTRIES:
+                    failures.append(finding(".git", "git-history-entry-limit"))
+                    return None
+                if position > len(content) or not valid_path(path) or len(path) > 4096:
+                    failures.append(finding("[invalid-path]", "git-history-invalid-path"))
+                    return None
+                if mode == b"40000":
+                    pending.append((path + "/", object_id))
+                elif mode in {b"100644", b"100755"}:
+                    if path in files:
+                        raise ValueError("duplicate-tree-path")
+                    files[path] = object_id
+                else:
+                    failures.append(finding(path, "git-history-file-type"))
+                    return None
+        return files
+
+    def audit_history(commit, files):
+        if manifest_name not in files:
+            failures.append(finding(manifest_name, "git-history-manifest"))
+            return
+        manifest = read_object(files[manifest_name], "blob", manifest_name)
+        if manifest is None:
+            return
+        if digest(manifest) != approved[commit]:
+            failures.append(finding(manifest_name, "git-history-manifest-hash"))
+            return
+        document = json.loads(manifest.decode("utf-8-sig"))
+        if not isinstance(document, dict) or set(document) != {"schema_version", "files"} or type(document["schema_version"]) is not int or document["schema_version"] != 1:
+            raise ValueError("invalid-history-manifest")
+        entries = document["files"]
+        if not isinstance(entries, list) or any(not isinstance(entry, dict) or set(entry) != {"path", "size", "sha256"} for entry in entries):
+            raise ValueError("invalid-history-manifest")
+        paths = [entry["path"] for entry in entries]
+        invalid = validate_paths(paths, manifest_name)
+        failures.extend(invalid)
+        if invalid:
+            return
+        if set(files) != set(paths) | {manifest_name}:
+            failures.append(finding(".git", "git-history-tree-mismatch"))
+            return
+        for path in REQUIRED_FILES:
+            if path not in paths:
+                failures.append(finding(path, "required-file"))
+        total = len(manifest)
+        for entry in entries:
+            path = entry["path"]
+            if forbidden(path):
+                failures.append(finding(path, "forbidden-path"))
+                continue
+            for category, pattern in PATTERNS.items():
+                if pattern.search(path):
+                    failures.append(finding(path, category))
+            if type(entry["size"]) is not int or entry["size"] < 0 or not isinstance(entry["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]):
+                failures.append(finding(path, "invalid-manifest-entry"))
+                continue
+            content = read_object(files[path], "blob", path)
+            if content is None:
+                return
+            total += len(content)
+            if total > MAX_TOTAL_BYTES:
+                failures.append(finding(path, "git-history-size-limit"))
+                return
+            if len(content) != entry["size"] or digest(content) != entry["sha256"]:
+                failures.append(finding(path, "git-history-payload-hash"))
+            failures.extend(scan_text(path, content))
+
+    if commits:
+        head = git("rev-parse", "HEAD").decode("ascii").strip()
+        current = tree_files(head)
+        if current is None:
+            return failures
+        historical = [commit for commit in commits if commit != head]
+        if current != hashes:
+            if head in approved:
+                historical.append(head)
+            else:
+                failures.append(finding(".git", "git-commit-mismatch"))
+        for commit in historical:
+            if commit not in approved:
+                failures.append(finding(".git", "git-history-unapproved"))
+                continue
+            files = current if commit == head else tree_files(commit)
+            if files is not None:
+                audit_history(commit, files)
     return failures
 
 
@@ -277,6 +403,8 @@ def main(argv=None):
     mode.add_argument("--build-manifest", type=Path, metavar="APPROVED_PATHS_JSON")
     parser.add_argument("--archive", type=Path)
     parser.add_argument("--check-git", action="store_true")
+    parser.add_argument("--approved-history", type=Path, metavar="EXTERNAL_JSON",
+                        help="map approved historical commit IDs to their manifest SHA256")
     args = parser.parse_args(argv)
     failures = []
     try:
@@ -286,6 +414,18 @@ def main(argv=None):
         if not root.is_dir() or linked(root):
             raise ValueError("invalid-root")
         root = root.resolve()
+        approved_history = None
+        if args.approved_history:
+            history_path = args.approved_history.resolve()
+            if not args.check_git or history_path.is_relative_to(root) or linked(args.approved_history) or history_path.stat().st_size > MAX_FILE_BYTES:
+                raise ValueError("invalid-history-approval-file")
+            approved_history = json.loads(history_path.read_text(encoding="utf-8-sig"))
+            if not isinstance(approved_history, dict) or len(approved_history) > MAX_HISTORY_COMMITS or any(
+                not isinstance(commit, str) or not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", commit)
+                or not isinstance(pin, str) or not re.fullmatch(r"[0-9a-f]{64}", pin)
+                for commit, pin in approved_history.items()
+            ):
+                raise ValueError("invalid-history-approval")
         manifest_path = root / args.manifest
         if manifest_path.exists() and linked(manifest_path):
             raise ValueError("linked-manifest")
@@ -329,8 +469,8 @@ def main(argv=None):
                 if args.archive:
                     failures.extend(check_archive(args.archive, expected))
                 if args.check_git:
-                    failures.extend(check_git(root, expected))
-    except (OSError, ValueError, TypeError, KeyError, zipfile.BadZipFile, subprocess.SubprocessError):
+                    failures.extend(check_git(root, expected, approved_history, args.manifest))
+    except (OSError, ValueError, TypeError, KeyError, RecursionError, zipfile.BadZipFile, subprocess.SubprocessError):
         failures.append(finding("[gate]", "invalid-input-or-io"))
     failures.sort(key=lambda f: (f["path"], f["line"], f["category"]))
     print(json.dumps({"ok": not failures, "findings": failures}, sort_keys=True))

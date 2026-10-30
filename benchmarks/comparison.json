@@ -1,0 +1,951 @@
+{
+  "schema": "local-video-engine-comparison-v1",
+  "checked_date_utc": "2026-10-30",
+  "coverage": {
+    "local_groups": 30,
+    "frontier_providers": 7,
+    "local_count_includes_runtimes_models_and_components": true,
+    "exhaustive_all_forks_or_models": false,
+    "review_method": "Current official project pages, repositories, docs, model cards and author papers; prior catalog used for discovery only. No new external runtime or frontier inference benchmark was executed.",
+    "ranking_claim": null,
+    "normalization_performed": false,
+    "unknown_fields_mean": "Not stated or not tied to the reported timing in the reviewed source; not a claim that no benchmark exists anywhere."
+  },
+  "our_result": {
+    "evidence": "historical_local_measurement_readback_not_new_public_export_run",
+    "checked_date_utc": "2026-10-30",
+    "hardware": {
+      "gpu": "RTX5090",
+      "gpu_count": 1
+    },
+    "output": {
+      "width": 640,
+      "height": 384,
+      "frames": 107,
+      "fps": 24,
+      "sampling_steps": 8,
+      "audio": true
+    },
+    "warm_task_median_seconds": 9.49788915,
+    "warm_task_samples_seconds": [
+      10.2802514,
+      8.6140212,
+      10.3165761,
+      8.7155269
+    ],
+    "first_task_median_seconds": 25.1130686,
+    "first_task_samples_seconds": [
+      28.360855,
+      21.8652822
+    ],
+    "timing_scope": "generate_media task wall spans include processing and saving; process startup is outside these task clocks; first task can include model loading and shape preparation",
+    "same_prompt_reference_warm_reuse": true,
+    "full_coordinator_passed": false,
+    "full_coordinator_failure": "Resource process-identity guard before final exit",
+    "saved_audiovisual_outputs_audited": 12,
+    "saved_media_full_decode_passed": true,
+    "same_profile_repeatability_passed": true,
+    "quality_equivalence_proven": false,
+    "fresh_public_export_gpu_test": false,
+    "attributable_bundle_speedup_proven": false,
+    "source_file": "reference.json"
+  },
+  "published_local_speed_rows": [
+    {
+      "id": "fastwan_qad",
+      "name": "FastVideo / FastWan-QAD-1.3B",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 1.8
+      },
+      "hardware": {
+        "gpu": "RTX 5090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "480p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": 5
+      },
+      "sampling_steps": 3,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not stated in headline benchmark",
+      "timing_scope_and_limits": "Publisher E2E; distilled Wan1.3B, FP4 linear/attention, no CFG, tiny decoder. Audio/startup/compile timing boundary NR.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://haoailab.com/blogs/fastwan-qad/"
+      ]
+    },
+    {
+      "id": "turbodiffusion_1_3b",
+      "name": "TurboDiffusion / TurboWan2.1-1.3B",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 1.9
+      },
+      "hardware": {
+        "gpu": "RTX 5090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "480p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": 5
+      },
+      "sampling_steps": null,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not stated for the timed example",
+      "timing_scope_and_limits": "Own README: 1.9s E2E. Benchmark settings are not tied to nearby examples. FastVideo reproduction: 6.10s; unmatched.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/thu-ml/TurboDiffusion",
+        "https://haoailab.com/blogs/fastwan-qad/"
+      ]
+    },
+    {
+      "id": "lightwan_480p",
+      "name": "LightX2V / LightWan2.2-A14B 480p",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 14.15
+      },
+      "hardware": {
+        "gpu": "RTX 5090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "480p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": null
+      },
+      "sampling_steps": 4,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not stated in table",
+      "timing_scope_and_limits": "Author E2E table; four-step NVFP4/sparse recipe. Frames, audio, startup and warm state NR.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://huggingface.co/lightx2v/LightWan2.2-A14B/blob/a6f09bcd5ffbd079e7397cb7c185691a13445af7/README.md"
+      ]
+    },
+    {
+      "id": "lightwan_720p",
+      "name": "LightX2V / LightWan2.2-A14B 720p",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 45.0
+      },
+      "hardware": {
+        "gpu": "RTX 5090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "720p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": null
+      },
+      "sampling_steps": 4,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not stated in table",
+      "timing_scope_and_limits": "Author E2E table; four-step NVFP4/sparse recipe. Frames, audio, startup and warm state NR.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://huggingface.co/lightx2v/LightWan2.2-A14B/blob/a6f09bcd5ffbd079e7397cb7c185691a13445af7/README.md"
+      ]
+    },
+    {
+      "id": "fasth3_8gb200",
+      "name": "FastVideo / FastH3 Omni",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 5.67,
+        "statistic": "mean",
+        "measured_seeds": 3
+      },
+      "hardware": {
+        "gpu": "GB200",
+        "gpu_count": 8
+      },
+      "output": {
+        "resolution_label": "768p",
+        "width": 1344,
+        "height": 768,
+        "frames": 124,
+        "fps": 24,
+        "requested_duration_seconds": 5
+      },
+      "sampling_steps": 8,
+      "audio_in_timed_result": true,
+      "cold_warm_state": "One warmup, then three measured seeds; conditioning caches disabled",
+      "timing_scope_and_limits": "One-image reference task. Client wall time through completed MP4 includes reference encoding, generation and decoding; model loading/server startup excluded. Different model/runtime recipe and eight GPUs.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://haoailab.com/blogs/fastvideo-omniref-update/"
+      ]
+    },
+    {
+      "id": "sol_h3_5090",
+      "name": "NVIDIA Sol Engine / MiniMax H3",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 231.2,
+        "publisher_baseline_seconds": 1045.4,
+        "publisher_speedup_ratio": 4.52
+      },
+      "hardware": {
+        "gpu": "RTX 5090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "768p",
+        "width": 1344,
+        "height": 768,
+        "frames": 124,
+        "fps": 24,
+        "requested_duration_seconds": 5
+      },
+      "sampling_steps": 50,
+      "audio_in_timed_result": true,
+      "cold_warm_state": "Warm, batch 1",
+      "timing_scope_and_limits": "Publisher E2E with stock checkpoint plus sparse attention/cross-step cache. VAE/fixed costs included; file-saving boundary not independently checked. Different canvas and 50 steps.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://nvlabs.github.io/Sana/Sol-Engine/H3-OnDevice/"
+      ]
+    },
+    {
+      "id": "ltx_video_paper",
+      "name": "LTX-Video paper",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds": 2.0
+      },
+      "hardware": {
+        "gpu": "H100",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "768x512",
+        "width": 768,
+        "height": 512,
+        "frames": null,
+        "fps": 24,
+        "requested_duration_seconds": 5
+      },
+      "sampling_steps": null,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not specified in abstract",
+      "timing_scope_and_limits": "Author paper abstract gives generation time, without full startup/encoding/audio boundary. Historical LTX-Video model, not LTX-2.5 or H3.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://arxiv.org/abs/2501.00103"
+      ]
+    },
+    {
+      "id": "framepack_4090",
+      "name": "FramePack author report",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "seconds_per_generated_frame": 1.5,
+        "without_teacache_seconds_per_generated_frame": 2.5
+      },
+      "hardware": {
+        "gpu": "RTX 4090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": null,
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": null
+      },
+      "sampling_steps": null,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not specified for the per-frame report",
+      "timing_scope_and_limits": "Next-frame-section throughput: 1.5 seconds/frame with TeaCache, 2.5 unoptimized. Author explicitly warns TeaCache can change output. Not first-frame or completed-file latency.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/lllyasviel/FramePack"
+      ]
+    },
+    {
+      "id": "streamdiffusionv2_4h100",
+      "name": "StreamDiffusionV2 headline",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "sustained_output_fps_14b": 58.28,
+        "sustained_output_fps_1_3b": 64.52,
+        "first_frame_seconds_upper_bound": 0.5
+      },
+      "hardware": {
+        "gpu": "H100",
+        "gpu_count": 4
+      },
+      "output": {
+        "resolution_label": null,
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": null
+      },
+      "sampling_steps": null,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Streaming throughput; cold-start boundary not pinned in headline",
+      "timing_scope_and_limits": "Video-to-video streaming without TensorRT/quantization. Headline step count/resolution NR; supported settings include 1-4 steps. FPS/first-frame latency exclude a demonstrated completed-file boundary.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://streamdiffusionv2.github.io/"
+      ]
+    },
+    {
+      "id": "hunyuan15_distilled",
+      "name": "HunyuanVideo-1.5 step-distilled I2V",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds_upper_bound": 75.0
+      },
+      "hardware": {
+        "gpu": "RTX 4090",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "480p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": null
+      },
+      "sampling_steps": null,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not specified in release statement",
+      "timing_scope_and_limits": "Official release says within 75 seconds end-to-end; supports 8 or 12 recommended steps and optional 4. Exact timed schedule, clip length and saving/startup boundaries are not pinned there.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5"
+      ]
+    },
+    {
+      "id": "wan22_5b",
+      "name": "Wan2.2 TI2V-5B reference statement",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds_strict_upper_bound": 540.0
+      },
+      "hardware": {
+        "gpu": "consumer GPU; exact benchmark SKU not specified",
+        "gpu_count": 1
+      },
+      "output": {
+        "resolution_label": "720p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": 24,
+        "requested_duration_seconds": 5
+      },
+      "sampling_steps": null,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "Not specified",
+      "timing_scope_and_limits": "Official README says under nine minutes without specific optimization. It separately supports 24GB devices such as RTX4090; that is not proof of the exact benchmark GPU.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Wan-Video/Wan2.2"
+      ]
+    },
+    {
+      "id": "vdn_h3_8b200",
+      "name": "VDN-H3 / SGLang Diffusion",
+      "evidence": "publisher_reported_not_locally_reproduced",
+      "checked_date_utc": "2026-10-30",
+      "reported_speed": {
+        "elapsed_seconds_approximate": 9.0,
+        "denoising_seconds": 6.9
+      },
+      "hardware": {
+        "gpu": "B200",
+        "gpu_count": 8
+      },
+      "output": {
+        "resolution_label": "768p",
+        "width": null,
+        "height": null,
+        "frames": null,
+        "fps": null,
+        "requested_duration_seconds": 14.4
+      },
+      "sampling_steps": 8,
+      "audio_in_timed_result": null,
+      "cold_warm_state": "After warmup",
+      "timing_scope_and_limits": "Author repository reports completed-video end-to-end time. Hybrid attention/adapters and MXFP8 change the model recipe; the headline does not separately identify audio inclusion in this timing. Not an unchanged-H3 comparison.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/OpenVDN/vdn-minimax-h3"
+      ]
+    }
+  ],
+  "local_catalog": [
+    {
+      "id": "wangp",
+      "name": "WanGP",
+      "kind": "runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Multi-model runtime and this package's upstream base. Our historical speed is one development-stack result.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/deepbeepmeep/WanGP"
+      ]
+    },
+    {
+      "id": "comfyui",
+      "name": "ComfyUI",
+      "kind": "workflow_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Node-based runtime. Model, nodes, kernels and workflow determine speed; no matched 107-frame H3 audiovisual wall clock was extracted from the reviewed overview.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Comfy-Org/ComfyUI"
+      ]
+    },
+    {
+      "id": "diffusers",
+      "name": "Diffusers",
+      "kind": "pipeline_library",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Video pipelines with compilation, attention, offload and precision options. A library name alone does not fix the workload or timing boundary.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://huggingface.co/docs/diffusers/main/en/optimization/fp16"
+      ]
+    },
+    {
+      "id": "fastvideo",
+      "name": "FastVideo",
+      "kind": "runtime_and_post_training",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Runtime and post-training framework; the two reported recipes below differ.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/hao-ai-lab/FastVideo",
+        "https://haoailab.com/blogs/fastwan-qad/",
+        "https://haoailab.com/blogs/fastvideo-omniref-update/"
+      ]
+    },
+    {
+      "id": "lightx2v",
+      "name": "LightX2V",
+      "kind": "runtime_and_post_training",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Four-step distilled NVFP4/sparse Wan2.2; see reported times below.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/ModelTC/LightX2V",
+        "https://huggingface.co/lightx2v/LightWan2.2-A14B/blob/a6f09bcd5ffbd079e7397cb7c185691a13445af7/README.md"
+      ]
+    },
+    {
+      "id": "turbodiffusion",
+      "name": "TurboDiffusion",
+      "kind": "runtime_and_distilled_models",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Distilled/quantized Wan recipe; reported settings and timings differ between sources.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/thu-ml/TurboDiffusion",
+        "https://haoailab.com/blogs/fastwan-qad/"
+      ]
+    },
+    {
+      "id": "xdit",
+      "name": "xDiT / xFuser",
+      "kind": "distributed_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Hybrid sequence/CFG/pipeline parallelism and caching. The linked CogVideo report uses 1-12 L40 GPUs; it is not a single-5090 result.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/xdit-project/xDiT",
+        "https://github.com/xdit-project/xDiT/blob/main/docs/performance/cogvideo.md"
+      ]
+    },
+    {
+      "id": "streamdiffusionv2",
+      "name": "StreamDiffusionV2",
+      "kind": "streaming_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Interactive video-to-video streaming; report separates first-frame latency and sustained FPS. Neither is the elapsed time to save a finished audiovisual file.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/chenfengxu714/StreamDiffusionV2",
+        "https://streamdiffusionv2.github.io/"
+      ]
+    },
+    {
+      "id": "streamdiffusion",
+      "name": "StreamDiffusion",
+      "kind": "image_streaming_pipeline",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Original pipeline accelerates repeated image generation/stream transformation. Image FPS must not be counted as native temporal-video or finished-file latency.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/cumulo-autumn/StreamDiffusion"
+      ]
+    },
+    {
+      "id": "sglang",
+      "name": "SGLang Diffusion",
+      "kind": "serving_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Built-in image/video engine with a current H3 cookbook. Model-specific device and attention support needs checking; no matched local task was run here.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/sgl-project/sglang",
+        "https://github.com/sgl-project/sglang/blob/main/docs/cookbook/diffusion/MiniMax/MiniMax-H3.mdx"
+      ]
+    },
+    {
+      "id": "vllm_omni",
+      "name": "vLLM-Omni",
+      "kind": "serving_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Supports diffusion stages, request batching and joint H3 video/audio serving. A supported model entry is not a latency benchmark.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/vllm-project/vllm-omni"
+      ]
+    },
+    {
+      "id": "trt_visualgen",
+      "name": "TensorRT-LLM VisualGen",
+      "kind": "serving_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Visual-generation subsystem. H3 TRTLLM attention is currently restricted to SM100/SM103; that restriction is H3-specific, not universal to VisualGen.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/models/visual-generation.md"
+      ]
+    },
+    {
+      "id": "sol_engine",
+      "name": "NVIDIA Sol Video Inference Engine",
+      "kind": "runtime_recipe",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "H3 kernel, sparse-attention and residual-cache recipe; 50-step 768p workload differs from ours.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://nvlabs.github.io/Sana/Sol-Engine/H3-OnDevice/"
+      ]
+    },
+    {
+      "id": "stable_diffusion_cpp",
+      "name": "stable-diffusion.cpp",
+      "kind": "cpp_runtime",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "C/C++ diffusion runtime with local video support. Different model formats, kernels and loading paths need their own matched test.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/leejet/stable-diffusion.cpp"
+      ]
+    },
+    {
+      "id": "diffsynth",
+      "name": "DiffSynth-Studio",
+      "kind": "runtime_and_training_library",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Video inference/training library, including H3 video/audio and low-memory paths. No matched wall-clock row was extracted from the reviewed overview.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/modelscope/DiffSynth-Studio"
+      ]
+    },
+    {
+      "id": "cachedit",
+      "name": "Cache-DiT",
+      "kind": "optimization_integration_library",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "PyTorch/Diffusers integration for caching, parallelism, quantization and offload. Model-specific settings and approximation policy matter.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/vipshop/cache-dit"
+      ]
+    },
+    {
+      "id": "ltx_video",
+      "name": "LTX-Video",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Earlier LTX model family and inference code. Its paper's two-second H100 result is separate from current LTX-2 releases.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Lightricks/LTX-Video",
+        "https://arxiv.org/abs/2501.00103"
+      ]
+    },
+    {
+      "id": "ltx2",
+      "name": "LTX-2 family",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Current official repository quickstart uses LTX-2.5 and joint audio/video pipelines. Distilled and production-detailing paths have different cost.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Lightricks/LTX-2"
+      ]
+    },
+    {
+      "id": "framepack",
+      "name": "FramePack",
+      "kind": "model_method_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Next-frame-section generation with bounded context. Author reports seconds per generated frame; TeaCache can change the output.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/lllyasviel/FramePack"
+      ]
+    },
+    {
+      "id": "wan22",
+      "name": "Wan2.2",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Includes 5B hybrid TI2V and larger MoE models. Native TI2V speed statement is a different model, resolution and schedule from H3.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Wan-Video/Wan2.2"
+      ]
+    },
+    {
+      "id": "hunyuan15",
+      "name": "HunyuanVideo-1.5",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Official 480p step-distilled I2V release reports a 4090 upper-bound time; the benchmark statement does not pin all settings.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5"
+      ]
+    },
+    {
+      "id": "cogvideo",
+      "name": "CogVideo / CogVideoX",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Official model table separates versions, precision, resolution, hardware and offload. No matched H3 audiovisual speed was measured here.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/zai-org/CogVideo"
+      ]
+    },
+    {
+      "id": "mochi",
+      "name": "Mochi 1",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Genmo model and reference inference code; consumer-GPU integrations exist. The overview is not a comparable full-file benchmark.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/genmoai/mochi"
+      ]
+    },
+    {
+      "id": "opensora",
+      "name": "Open-Sora",
+      "kind": "model_and_training_inference_stack",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "HPC-AI implementation, including Open-Sora 2.0. This is distinct from OpenAI Sora; no matched local video latency was extracted.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/hpcaitech/Open-Sora"
+      ]
+    },
+    {
+      "id": "cosmos",
+      "name": "NVIDIA Cosmos",
+      "kind": "world_models_and_reference_stack",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Cosmos 3 is current; Predict2.5 is in limited maintenance. Physical-world prediction and audiovisual generation have different tasks and hardware tiers.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/NVIDIA/Cosmos",
+        "https://github.com/nvidia-cosmos/cosmos-predict2.5"
+      ]
+    },
+    {
+      "id": "minimax_h3",
+      "name": "MiniMax H3",
+      "kind": "model_and_reference_implementation",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Open multimodal model with native stereo audio and several task modes. The model is distinct from WanGP and its optimized/distilled derivatives.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/MiniMax-AI/MiniMax-H3",
+        "https://www.minimax.io/blog/minimax-h3"
+      ]
+    },
+    {
+      "id": "vdn_h3",
+      "name": "Video DeltaNet / VDN-H3",
+      "kind": "modified_model_and_inference_recipe",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Hybrid-attention H3 derivative using an added linear branch/adapters. Published eight-B200 speed is not an unchanged-model comparison.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/OpenVDN/vdn-minimax-h3"
+      ]
+    },
+    {
+      "id": "teacache",
+      "name": "TeaCache",
+      "kind": "cache_component",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Cross-timestep reuse component, integrated into several runtimes. It can change output; it is not a standalone video engine or a weight-only speed claim.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/ali-vilab/TeaCache",
+        "https://github.com/lllyasviel/FramePack"
+      ]
+    },
+    {
+      "id": "sageattention",
+      "name": "SageAttention",
+      "kind": "attention_component",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Quantized attention kernels, including separate Blackwell code. Attention-kernel speedups do not directly establish finished-video latency or exact output identity.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/thu-ml/SageAttention"
+      ]
+    },
+    {
+      "id": "flashattention",
+      "name": "FlashAttention",
+      "kind": "attention_component",
+      "checked_date_utc": "2026-10-30",
+      "review_level": "official overview/documentation or author paper; no new local execution",
+      "finding": "Memory-efficient attention library; current README includes FlashAttention-4. Its kernel throughput is a component result, not an audiovisual-engine benchmark.",
+      "matched_our_workload": false,
+      "source_urls": [
+        "https://github.com/Dao-AILab/flash-attention"
+      ]
+    }
+  ],
+  "frontier_catalog": [
+    {
+      "id": "veo",
+      "name": "Google Veo 3.1 / current migration routes",
+      "documented_speed": {
+        "request_latency_seconds_min": 11,
+        "request_latency_seconds_max": 360
+      },
+      "output_specs": "Veo page documents 8-second clips, 720p/1080p/4K and native audio.",
+      "audio": true,
+      "availability": "The reviewed documentation says Veo3.1 preview endpoints shut down on 2026-10-22; it directs users to Gemini Omni 1.1 Flash or GA models through the enterprise platform.",
+      "limits": "The 11-second to 6-minute service range remains on that documentation page; no matched model variant, GPU, warm state or queue-free finished-download timing is supplied. Treat it as documented service guidance, not an active-preview benchmark.",
+      "source_urls": [
+        "https://ai.google.dev/gemini-api/docs/veo?hl=en"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    },
+    {
+      "id": "sora",
+      "name": "OpenAI Sora 2 (discontinued)",
+      "documented_speed": null,
+      "output_specs": "Historical video/audio model; current comparison must account for discontinuation.",
+      "audio": true,
+      "availability": "Official Help Center: web/app discontinued 2026-04-26; API discontinued 2026-09-24.",
+      "limits": "No currently available Sora service benchmark is claimed; archival capability descriptions are not present service speed.",
+      "source_urls": [
+        "https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation",
+        "https://openai.com/index/sora-2/"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    },
+    {
+      "id": "runway",
+      "name": "Runway Gen-4.5; Gen-4 Turbo speed tier",
+      "documented_speed": null,
+      "output_specs": "Gen-4.5 official help: 2-10 seconds, 720p, 24/25 FPS.",
+      "audio": null,
+      "availability": "Gen-4.5 is documented as available on the web; Gen-4 Turbo remains a separate listed model.",
+      "limits": "No reproducible request wall clock or hardware is given in reviewed model/spec pages. Clip duration and credits per output second are not generation speed.",
+      "source_urls": [
+        "https://help.runwayml.com/hc/en-us/articles/46974685288467-Creating-with-Gen-4-5",
+        "https://academy.runwayml.com/models-pricing"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    },
+    {
+      "id": "luma",
+      "name": "Luma Ray3.2",
+      "documented_speed": null,
+      "output_specs": "Current official model index names Ray3.2; video modification up to 20 seconds at 1080p.",
+      "audio": null,
+      "availability": "Official current-model page says Ray3.2, released June2026, through Luma App/API.",
+      "limits": "No matched seconds-to-finished-clip benchmark in the reviewed current-model page. Historical Ray3.14 announcement claimed 4x faster at720p versusRay3; that is not a Ray3.2 latency.",
+      "historical_relative_speed_claim": {
+        "model": "Ray3.14",
+        "ratio": 4,
+        "baseline": "Ray3",
+        "resolution_label": "720p"
+      },
+      "source_urls": [
+        "https://lumalabs.ai/llm-info",
+        "https://lumalabs.ai/news/ray3_14"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    },
+    {
+      "id": "kling",
+      "name": "Kling 4.0 / Kling 4.0 Flash",
+      "documented_speed": null,
+      "output_specs": "Official announced specs: 3-30 seconds, 720p/1080p/4K, stereo audio.",
+      "audio": true,
+      "availability": "September30 pages announce October rollout and Flash early access from September28. Accessible release-note body did not resolve rollout completion.",
+      "limits": "No numerical wall-clock benchmark or matched hardware/steps/warm state in reviewed official pages.",
+      "source_urls": [
+        "https://kling.ai/dev/model-release/kling-4",
+        "https://kling.ai/blog/kling-4-vs-3",
+        "https://kling.ai/release-note/release-notes/Kling_4"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    },
+    {
+      "id": "pika",
+      "name": "Pika 2.5",
+      "documented_speed": null,
+      "output_specs": "Official product/academy pages: 5-second text-to-video; 5/10-second image-to-video, 720p/1080p.",
+      "audio": false,
+      "availability": "Pika2.5 is listed on the official platform.",
+      "limits": "Renders are silent; separate Pika Soundtrack is extra work. No matched elapsed generation time or GPU information in reviewed sources.",
+      "source_urls": [
+        "https://pika.art/apps/pika-2-5",
+        "https://pika.art/learn/pika-2-5-tutorial"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    },
+    {
+      "id": "hailuo",
+      "name": "MiniMax / Hailuo: MiniMax H3",
+      "documented_speed": null,
+      "output_specs": "Official July2026 H3 launch describes up to15seconds at2K with native stereo audio; current API guide names MiniMax-H3.",
+      "audio": true,
+      "availability": "Official H3 launch links the Hailuo product, and current API guide documents H3. Hailuo2.3 is an earlier named release.",
+      "limits": "No matched hosted seconds-to-finished-download result in reviewed official pages. The local H3 implementations above are separate runtime/model recipes.",
+      "source_urls": [
+        "https://www.minimax.io/blog/minimax-h3",
+        "https://platform.minimax.io/docs/guides/video-generation",
+        "https://www.minimax.io/news/minimax-hailuo-23"
+      ],
+      "evidence": "official_service_documentation_not_locally_measured",
+      "checked_date_utc": "2026-10-30",
+      "hardware": null,
+      "gpu_count": null,
+      "sampling_steps": null,
+      "frames": null,
+      "cold_warm_state": null,
+      "matched_our_workload": false
+    }
+  ],
+  "comparison_rules": [
+    "Finished audiovisual task latency, denoiser time, first-frame latency, sustained streaming FPS and service queue latency are separate measurements.",
+    "Different model weights/distillation/quantization/attention/decoder/steps/resolution/frame count/audio/hardware/input-cache conditions prevent an attributable runtime ranking.",
+    "All external numerical values are publisher-reported and were not reproduced on this workstation.",
+    "No frontier-quality, exact-output or one-second-finished-audiovisual guarantee is established.",
+    "No model weights, private prompts, reference media, generated media, raw operational logs or credentials are included."
+  ]
+}
