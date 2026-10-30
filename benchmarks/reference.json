@@ -1,0 +1,38 @@
+{
+  "schema": "local-video-engine-reference-v1",
+  "hardware": "single NVIDIA RTX 5090",
+  "measurement_date_utc": "2026-10-30",
+  "whole_stack_reference_only": true,
+  "attributable_patch_bundle_speedup": false,
+  "video": {
+    "model_family": "FastH3-family local reference profile",
+    "width": 640,
+    "height": 384,
+    "frames": 107,
+    "frames_per_second": 24,
+    "steps": 8,
+    "audio": true,
+    "first_task_samples_seconds": [
+      28.360855,
+      21.8652822
+    ],
+    "first_task_median_seconds": 25.1130686,
+    "warm_task_samples_seconds": [
+      10.2802514,
+      8.6140212,
+      10.3165761,
+      8.7155269
+    ],
+    "warm_task_median_seconds": 9.49788915,
+    "scope": "Completed generate_media task spans include processing and saving. Process startup is a separate boundary.",
+    "coordinator_execution_passed": false,
+    "coordinator_interruption": "Resource identity guard before final process exit",
+    "saved_media_audit_passed": true,
+    "same_profile_decoded_repeatability": true,
+    "cross_conditioner_quality_equivalence_proven": false
+  },
+  "not_achieved": [
+    "one-second fresh complete audiovisual generation"
+  ],
+  "privacy": "Aggregate numerical observations only; no prompts, inputs, output media, user paths, session data or raw logs."
+}

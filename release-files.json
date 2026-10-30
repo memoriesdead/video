@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": ".gitattributes",
+      "size": 71,
+      "sha256": "fd534920426b4e86d18e815d36b5bd9f768f07756041af0c03357871543a4351"
+    },
+    {
+      "path": ".gitignore",
+      "size": 200,
+      "sha256": "ecf6b727069bdfd82007139b16bf8676faa9369c4c19183716abef3aab6b0e01"
+    },
+    {
+      "path": "LICENSE",
+      "size": 11558,
+      "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+    },
+    {
+      "path": "LICENSES.md",
+      "size": 919,
+      "sha256": "789ab4bb79914304431870dc441cc65120147517e0cf31623987789b70379be8"
+    },
+    {
+      "path": "README.md",
+      "size": 2360,
+      "sha256": "32f4096759bbd62b45cdf9549e1acf81a8971f126d77492c135d6e7f4b60d40f"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "size": 683,
+      "sha256": "8a598df612c9e8f7dcda2c565267e4d03cbcce67a24034b2c3015573e93f6cc1"
+    },
+    {
+      "path": "backends/wangp/LICENSE.txt",
+      "size": 21924,
+      "sha256": "44086f2df256ddd6336a016c4f7eca01126a2576e306ca2d7fd4719ab43dd667"
+    },
+    {
+      "path": "backends/wangp/MODIFICATIONS.md",
+      "size": 2494,
+      "sha256": "b2d022e58ecaa53d6849e2faa06cb81002dca351c36dab66c92bbc179a86f198"
+    },
+    {
+      "path": "backends/wangp/README.md",
+      "size": 8230,
+      "sha256": "f89a57a9b89037e0731256ef76d573ad067b7b12fb53189d71baf165958ac07e"
+    },
+    {
+      "path": "backends/wangp/backend.json",
+      "size": 1953,
+      "sha256": "68abfb64351179306d4fc4fdd7f4c53eccd6f817ec69b22453998e00aeb5bc9b"
+    },
+    {
+      "path": "backends/wangp/mmgp-LICENSE.md",
+      "size": 211,
+      "sha256": "e3c927bf9f1d16e5cc36e1591e0d4f2e8aea4398f5cc157091292925e50c450c"
+    },
+    {
+      "path": "backends/wangp/patches/engine.patch",
+      "size": 18210,
+      "sha256": "300eb7c09f54757c90b68848a8563b3b4ad2ee64c0cd40f69f5b4802eff6a4f2"
+    },
+    {
+      "path": "backends/wangp/run_batch.py",
+      "size": 10486,
+      "sha256": "c39bd15055bdcd8dc3b4f38d88148a07bc91852b50ae3cd56a7b7d41e1dd2483"
+    },
+    {
+      "path": "backends/wangp/tests/run_cpu_tests.py",
+      "size": 835,
+      "sha256": "cc21a697709bb4a1779b31e007419dda0cfd2c5e95b3a5834af778a42b3623af"
+    },
+    {
+      "path": "backends/wangp/tests/test_adapter.py",
+      "size": 9954,
+      "sha256": "9f71e668cc56e117287cc62f205997146dc80b588068f4c128ecd6bb77c02aef"
+    },
+    {
+      "path": "backends/wangp/tests/test_wangp_h3_image_latent_cache.py",
+      "size": 11843,
+      "sha256": "4644b0c38bdcdd695b41f2e6004b8f610acc0f92f766327f6448a3c36fd04492"
+    },
+    {
+      "path": "backends/wangp/tests/test_wangp_h3_resident_cache.py",
+      "size": 6850,
+      "sha256": "0b12f028b947268ebdd24b5cc884f849bdcdd07e9be79da7ef03d96e5be82d1a"
+    },
+    {
+      "path": "backends/wangp/tests/test_wangp_h3_vsa_graphs.py",
+      "size": 7775,
+      "sha256": "48456fe913a2d7c14588ee7d77ddc4c960dc7bb8d84e177864acb91194655393"
+    },
+    {
+      "path": "benchmarks/reference.json",
+      "size": 1292,
+      "sha256": "a97272f1e021e24e6f0cd0a1c24769f6d3787b61baf2308c11717c3fe9271828"
+    },
+    {
+      "path": "tests/test_engine.py",
+      "size": 4046,
+      "sha256": "438ecec9af7e3a41e2c06297ffa7e150019e3b21e358eec4cfbfdcb3288b45e2"
+    },
+    {
+      "path": "tests/test_release_gate.py",
+      "size": 12872,
+      "sha256": "9332d4a6e5f18fc3bf7f8b2e600119fd67f2411a3129ae5c3c2488ddb6389ec0"
+    },
+    {
+      "path": "tools/check_release.py",
+      "size": 16480,
+      "sha256": "4d7489fcd5d125c93529542a03cbe6f0d7c2279810e5e0f1855f919265596da0"
+    },
+    {
+      "path": "tools/engine.py",
+      "size": 6670,
+      "sha256": "7621ae176acc92c97e610dba2094cb634bbe6ddc2e3fed52be9d70189ecc2771"
+    }
+  ]
+}

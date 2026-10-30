@@ -1,0 +1,366 @@
+diff --git a/mmgp/cuda_graphs.py b/mmgp/cuda_graphs.py
+--- a/mmgp/cuda_graphs.py
++++ b/mmgp/cuda_graphs.py
+@@ -113,6 +113,12 @@
+         return None
+     manager, model_id = owner
+     return manager.cuda_graphs.get(model_id)
++
++
++def statistics(module):
++    """Stored captures and accepted replay launches, independent of cache invalidation; no synchronization added."""
++    graphs = _graphs(module)
++    return None if graphs is None else {**graphs.stats, "live_graphs": len(graphs.entries), "disabled": graphs.disabled}
+ 
+ 
+ def is_enabled(module):
+@@ -524,6 +530,7 @@
+         self.state_ids = set()  # their ids
+         self.holders = {}  # name -> the objects holding these tensors that blocks take as arguments
+         self.holder_ids = set()  # their ids
++        self.stats = {"captures": 0, "replays": 0}
+         self.clear()
+         _managers.append(self)
+ 
+@@ -581,7 +588,7 @@
+                 copies, borrowed, mutated, result, streams = memo[6]
+                 for static, leaf in copies:
+                     static.copy_(leaf)
+-                entry.graph.replay()
++                self._launch_replay(entry)
+                 stream = torch.cuda.current_stream()
+                 if stream not in streams:  # recording a stream again on the same buffers would change nothing
+                     streams.append(stream)
+@@ -667,6 +674,8 @@
+                             self._capture_output_plan = None
+                             entry = self._capture(module, forward, leaves, spec, signature, extras, extra_signature, out, static_key, buffers, not retained_output, self.blas[blas_key])
+                         self.entries[key] = entry
++                        if entry is not None:
++                            self.stats["captures"] += 1
+                     finally:
+                         self.__dict__.pop('_capture_lifetimes', None)
+                         self.__dict__.pop('_capture_output_plan', None)
+@@ -962,6 +971,10 @@
+             self.reported = True
+         return entry
+ 
++    def _launch_replay(self, entry):
++        entry.graph.replay()
++        self.stats["replays"] += 1
++
+     def _replay(self, entry, leaves, extras):
+         from . import allocator
+         for key in entry.static_key[len(entry.static) + len(entry.extra_static):]:
+@@ -976,7 +989,7 @@
+                 static.copy_(leaves[index])
+         if extras:
+             torch._foreach_copy_(entry.extra_static, [holder[index] for holder, index in extras])
+-        entry.graph.replay()
++        self._launch_replay(entry)
+         stream = torch.cuda.current_stream()
+         for key in set(entry.static_key):
+             if key in self.borrowed:
+diff --git a/models/minimax_h3/minimax_h3_handler.py b/models/minimax_h3/minimax_h3_handler.py
+--- a/models/minimax_h3/minimax_h3_handler.py
++++ b/models/minimax_h3/minimax_h3_handler.py
+@@ -30,6 +30,23 @@
+ 
+ 
+ REPO_ID = "DeepBeepMeep/MiniMax-H3"
++
++
++def _h3_batch_options(pipe, model_type, model_def, shared_h3_pipeline, disable_pinning):
++    resident = (os.environ.get("WANGP_LOCAL_BATCH_GPU_RESIDENCY") == "1"
++                and os.environ.get("WGP_H3_VSA_GRAPHS") == "1"
++                and model_type == "minimax_h3_fasth3_omni_nvfp4"
++                and model_def.get("fasth3", False)
++                and shared_h3_pipeline is None)
++    options = {"pipe": pipe}
++    if disable_pinning:
++        options["pinnedMemory"] = False
++    if resident:
++        names = ("transformer", "vae", "audio_vae", "video_encoder")
++        options["coTenantsMap"] = {name: [other for other in names if other != name] for name in names}
++    return resident, options if len(options) > 1 else pipe
++
++
+ TEXT_ENCODER_BF16 = "Qwen3-VL-32B-Instruct-layer50_bf16.safetensors"
+ TEXT_ENCODER_INT8 = "Qwen3-VL-32B-Instruct-layer50_quanto_bf16_int8.safetensors"
+ TEXT_ENCODER_GGUF_Q2 = "qwen3vl-32B-MiniMax-H3-Q2_K.gguf"
+@@ -643,7 +660,7 @@
+         result = {
+             "dtype": "bf16",
+             "device_explicit": True,
+-            "cuda_graphs": [] if veda or fasth3 else ["transformer"],
++            "cuda_graphs": [] if veda or (fasth3 and os.environ.get("WGP_H3_VSA_GRAPHS") != "1") else ["transformer"],
+             "uint8_guides": _uint8_guides,
+             "tiny_vae_architecture": REF2VA_ARCHITECTURE,
+             "size": "lighter" if pruned else "large",
+@@ -1292,7 +1309,9 @@
+             pipe = BorrowingPipe(pipe)
+             pipe.update({name: shared_h3_offloadobj.models[name] for name in borrowed_names})
+             pipe._mmgp_ignore_models = borrowed_names
+-        return pipeline, {"pipe": pipe, "pinnedMemory": False} if disable_pinning else pipe
++        pipeline._local_batch_h3_gpu_residency, options = _h3_batch_options(
++            pipe, model_type, model_def, shared_h3_pipeline, disable_pinning)
++        return pipeline, options
+ 
+     @staticmethod
+     def fix_settings(base_model_type, settings_version, model_def, ui_defaults):
+diff --git a/models/minimax_h3/pipeline.py b/models/minimax_h3/pipeline.py
+--- a/models/minimax_h3/pipeline.py
++++ b/models/minimax_h3/pipeline.py
+@@ -13,7 +13,8 @@
+ from PIL import Image
+ from tqdm import tqdm
+ 
+-from mmgp import offload
++from mmgp import offload, runtime
++from shared.kernels import kernel_policy
+ from shared.utils.loras_mutipliers import extract_loras_side, update_loras_slists
+ from shared.utils.text_encoder_cache import TextEncoderCache
+ from shared.utils.phase_progress import control_video_encoding, generation_progress
+@@ -34,6 +35,7 @@
+ 
+ 
+ AUDIO_SAMPLE_RATE = 32000
++H3_IMAGE_LATENT_CACHE_MAX_BYTES = 16 * 1024**2
+ AUDIO_LATENT_FPS = 40
+ # Allow audio repair before the final overlap frame; False restores the original continuation behavior.
+ H3_EXTENDED_AUDIO_REPAIR = True
+@@ -395,12 +397,16 @@
+         self.dialogue_whisper = None
+         self.dtype = dtype
+         self.text_encoder_cache = TextEncoderCache()
++        self._image_latent_cache = None
++        self.image_latent_cache_stats = {"hits": 0, "misses": 0, "bypasses": 0}
+         self._shared_offloadobj = None
+         self._private_offloadobj = None
+         self._interrupt = False
+         self._early_stop = False
+ 
+     def set_offload_handoff(self, shared_offloadobj, private_offloadobj):
++        if shared_offloadobj is not self._shared_offloadobj or private_offloadobj is not self._private_offloadobj:
++            self.clear_image_latent_cache()
+         self._shared_offloadobj = shared_offloadobj
+         self._private_offloadobj = private_offloadobj
+ 
+@@ -413,6 +419,7 @@
+             self._shared_offloadobj.unload_all()
+ 
+     def detach_shared_components(self):
++        self.clear_image_latent_cache()
+         self.text_encoder = self.vae = self.video_encoder = self.video_decoder = self.audio_vae = self.latent_upscaler = None
+         self._shared_offloadobj = self._private_offloadobj = None
+ 
+@@ -514,6 +521,74 @@
+         self._check_abort()
+         return self.vae.encode_condition(video.unsqueeze(0), self.device, keep_all_latents=keep_all_latents).cpu()
+ 
++    def clear_image_latent_cache(self):
++        # Call explicitly before raw .data weight edits, which bypass PyTorch's version counter.
++        self._image_latent_cache = None
++
++    def _restore_image_cache_cpu_state(self):
++        # Retained inference copies may lack version counters. Restore MMGP's
++        # actual CPU originals rather than weakening the cache identity check.
++        if (not getattr(self, "_local_batch_h3_gpu_residency", False)
++                or os.environ.get("WANGP_LOCAL_BATCH_GPU_RESIDENCY") != "1"
++                or os.environ.get("WGP_H3_VSA_GRAPHS") != "1"):
++            return
++        decoder_owner = runtime._owner(self.vae.decoder)
++        encoder_owner = runtime._owner(self.vae.encoder)
++        if (decoder_owner is None or encoder_owner is None or decoder_owner[0] is not encoder_owner[0]
++                or decoder_owner[1] != "vae" or encoder_owner[1] != "video_encoder"):
++            return
++        manager = decoder_owner[0]
++        if any(name in ("vae", "video_encoder") for name in manager.active_models_ids):
++            manager.unload_all(keep=[name for name in manager.active_models_ids if name not in ("vae", "video_encoder")])
++
++    def _image_latent_cache_key(self, video):
++        state = []
++        try:
++            for name, tensor in list(self.vae.named_parameters()) + list(self.vae.named_buffers()):
++                state.append((name, id(tensor), tensor._version, str(tensor.dtype), tuple(tensor.shape)))
++        except RuntimeError:  # Inference tensors without version tracking cannot prove safe reuse.
++            return None
++        digest = hashlib.sha256()
++        self._update_tensor_digest(digest, video)
++        tiling = tuple(getattr(self.vae, name) for name in (
++            "use_tiling", "tile_sample_min_height", "tile_sample_min_width",
++            "tile_sample_min_overlap_height", "tile_sample_min_overlap_width"))
++        precision = (kernel_policy.precision, repr(kernel_policy.families), offload.shared_state.get("_attention"),
++                     torch.get_float32_matmul_precision(), torch.backends.cuda.matmul.allow_tf32,
++                     torch.backends.cudnn.allow_tf32, torch.is_autocast_enabled("cuda"),
++                     str(torch.get_autocast_dtype("cuda")), torch.is_autocast_enabled("cpu"),
++                     str(torch.get_autocast_dtype("cpu")))
++        return (digest.digest(), id(self.vae), str(self.vae._model_dtype), repr(self.vae.config),
++                tuple((name, module.training) for name, module in self.vae.named_modules()),
++                tuple(state), tiling, precision)
++
++    def _encode_image_reference(self, video):
++        self._check_abort()
++        stats = self.image_latent_cache_stats
++        if (os.environ.get("WGP_H3_IMAGE_LATENT_CACHE") != "1" or video.device.type != "cpu"
++                or video.ndim != 4 or video.shape[1] != 1):
++            self.clear_image_latent_cache()
++            stats["bypasses"] += 1
++            return self._encode_video(video)
++        self._restore_image_cache_cpu_state()
++        key = self._image_latent_cache_key(video)
++        if key is None:
++            self.clear_image_latent_cache()
++            stats["bypasses"] += 1
++            return self._encode_video(video)
++        cached = self._image_latent_cache
++        if cached is not None and cached[0] == key:
++            stats["hits"] += 1
++            return cached[1].clone()
++        self.clear_image_latent_cache()
++        stats["misses"] += 1
++        latent = self._encode_video(video)
++        if latent.device.type == "cpu" and latent.numel() * latent.element_size() <= H3_IMAGE_LATENT_CACHE_MAX_BYTES:
++            # MMGP restores these pre-encode CPU originals after each video task;
++            # resident copies installed during encode have different identities.
++            self._image_latent_cache = (key, latent.detach().clone())
++        return latent
++
+     def _waveform(self, waveform, sample_rate):
+         if waveform is None:
+             return None
+@@ -614,7 +689,7 @@
+         video = self._prepare_image_reference(image, target_width, target_height, image_refs_relative_size)
+         if video is None:
+             return
+-        latent = self._encode_video(video)
++        latent = self._encode_image_reference(video)
+         if self.fixed_prompt is None:
+             presentation.append({"type": "image", "frames": _qwen_frames(video.clone())})
+         visual_latents.append(latent)
+diff --git a/models/minimax_h3/transformer.py b/models/minimax_h3/transformer.py
+--- a/models/minimax_h3/transformer.py
++++ b/models/minimax_h3/transformer.py
+@@ -33,6 +33,7 @@
+ from shared.utils.lora_mapping import convert_lora_keys
+ from .pdd import MiniMaxH3ParallelHead
+ from .sol_attention import MiniMaxH3SolAttention
++from .vsa import graphs as vsa_graphs
+ from mmgp import cuda_graphs
+ from .components.packing import (
+     MINIMAX_H3_AUDIO_TAG,
+@@ -748,6 +749,8 @@
+         return torch.lerp(table[lower], table[lower + 1], (position - lower).unsqueeze(1).to(table.dtype))
+ 
+     def _prepare_graph_input(self, video_x, audio_x, context, payload, layout, dtype):
++        if hasattr(self, "vsa_attention") and vsa_graphs.enabled():
++            return None  # the bounded VSA experiment captures DiT blocks only
+         with cuda_graphs.scope():
+             if not cuda_graphs.is_enabled(self):
+                 return None
+@@ -904,6 +907,8 @@
+             self.veda_attention.begin_forward(layout, (latent_t, latent_h // self.patch_size[1], latent_w // self.patch_size[2]), payload, device, dtype)
+         if hasattr(self, "vsa_attention"):
+             self.vsa_attention.begin_forward(layout, (latent_t, latent_h // self.patch_size[1], latent_w // self.patch_size[2]), payload, device, dtype)
++            if vsa_graphs.enabled():
++                vsa_graphs.prepare(self, self.vsa_attention)
+         if not hasattr(self.blocks[0].attn, "vdn"):  # Sol layers ignore the Kitchen table; shorter sequences use it
+             rope = kernels.prepare_split_half_rope(rope)
+         if vdn := getattr(self.blocks[0].attn, "vdn", None):
+diff --git a/models/minimax_h3/vsa/graphs.py b/models/minimax_h3/vsa/graphs.py
+new file mode 100644
+--- /dev/null
++++ b/models/minimax_h3/vsa/graphs.py
+@@ -0,0 +1,64 @@
++"""Experimental replay of existing VSA kernels; default off and PDD heads stay eager."""
++import os
++
++from mmgp import cuda_graphs, offload
++
++
++_active_key = None
++_active_owner = None
++_reason = "VSA graph state has not been prepared"
++
++
++def enabled():
++    return os.environ.get("WGP_H3_VSA_GRAPHS") == "1"
++
++
++def _gate():
++    if offload.shared_state.get("_attention") != "vsa":
++        return None
++    return _reason if enabled() else "experimental VSA graphs are off"
++
++
++cuda_graphs.register_key(lambda: _active_key)
++cuda_graphs.register_gate(_gate)
++
++
++def prepare(owner, policy):
++    """Register only caches filled by a previous complete eager forward, outside capture."""
++    global _active_key, _active_owner, _reason
++    layout = policy.layout
++    reason = None
++    if not enabled():
++        reason = "experimental VSA graphs are off"
++    elif not policy.enabled or layout is None:
++        reason = "VSA is inactive"
++    elif policy.tile != 128 or not policy.int8_qk or policy.cuda_kind is not None:
++        reason = "experimental VSA graphs require 128-token Triton INT8 QK / FP16 PV"
++    else:
++        heads = [key for key in policy.index_cache if key[0] == "heads"]
++        if not heads or any(("prefix", key[2] - key[1]) not in policy.index_cache for key in heads):
++            reason = "VSA graph caches require a complete eager warmup"
++    if reason is not None:
++        cuda_graphs.release_state(owner, "h3_vsa")
++        _active_key, _active_owner, _reason = None, id(owner), reason
++        return False
++    cache = tuple(sorted(policy.index_cache.items()))
++    tensors = (layout.perm, layout.valid_count, layout.block_valid,
++               *(tensor for _, value in cache for tensor in (value if isinstance(value, tuple) else (value,))))
++    if not all(tensor.is_cuda for tensor in tensors):
++        cuda_graphs.release_state(owner, "h3_vsa")
++        _active_key, _active_owner, _reason = None, id(owner), "VSA graph state must be on CUDA"
++        return False
++    cuda_graphs.register_state(owner, "h3_vsa", tensors)
++    _active_key = (id(owner), id(policy), policy.signature, id(layout), layout.tile, layout.n_prefix_tiles,
++                   tuple((region.start, region.stop, region.keep) for region in layout.regions), layout.seq_len,
++                   policy.int8_qk, policy.cuda_kind, policy.sparsity, policy.ref_keep_rate,
++                   tuple(key for key, _ in cache), tuple(id(tensor) for tensor in tensors))
++    _active_owner, _reason = id(owner), None
++    return True
++
++
++def statistics(owner):
++    result = cuda_graphs.statistics(owner) or {"captures": 0, "replays": 0, "live_graphs": 0, "disabled": None}
++    return {**result, "opt_in": enabled(), "state_ready": _active_owner == id(owner) and _reason is None,
++            "fallback_reason": _reason if _active_owner == id(owner) else "VSA graph state is not active for this owner"}
+diff --git a/wgp.py b/wgp.py
+--- a/wgp.py
++++ b/wgp.py
+@@ -3545,6 +3545,8 @@
+ cuda_graphs.register_key(lambda: (offload.shared_state.get("_attention"), attention_kit.head_split, kernel_policy.precision, int8_backend.revision, fp8_backend.revision))
+ # CUDA Graph mode: the attention modes and the classes of quantized weights / layers whose kernels were validated in captured graphs
+ CUDA_GRAPH_ATTENTION_MODES = {"sdpa", "flash", "sage", "sage2", "radial", "sol"}
++if os.environ.get("WGP_H3_VSA_GRAPHS") == "1":
++    CUDA_GRAPH_ATTENTION_MODES.add("vsa")  # separately gated by registered, warmed VSA state
+ CUDA_GRAPH_WEIGHT_TYPES = {"WeightQBytesTensor", "ScaledFP8WeightTensor", "Int8ConvRotWeightTensor", "GGUFWeightTensor", "GGUFSourceTensor", "BNBNF4WeightTensor", "AsymW4A8Int8WeightTensor",
+                            "NunchakuSVDQWeightTensor", "NunchakuAWQWeightTensor", "NVFP4WeightTensor", "BlockScaledWeight",
+                            "QEmbedding"}  # Quanto embedding: a lookup in its WeightQBytesTensor (graph replay equal to eager, 2026-10-20)
+@@ -8622,7 +8624,15 @@
+                     samples = samples.to("cpu") # a video stays where it was decoded until it is converted to uint8 below, the RAM only gets the uint8 frames
+   
+             clear_gen_cache()
+-            offloadobj.unload_all()
++            local_batch_keep_gpu_resident = (
++                os.environ.get("WANGP_LOCAL_BATCH_GPU_RESIDENCY") == "1"
++                and base_model_type == "minimax_h3_ref2va_pruned" and not is_image
++                and os.environ.get("WGP_H3_VSA_GRAPHS") == "1"
++                and getattr(wan_model, "_local_batch_h3_gpu_residency", False)
++                and samples is not None and not abort and not gen.get("abort", False)
++            )
++            if not local_batch_keep_gpu_resident:
++                offloadobj.unload_all()
+             gc.collect()
+             torch.cuda.empty_cache()
+             ram_debug_mark("output processing")

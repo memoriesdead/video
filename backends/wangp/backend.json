@@ -1,0 +1,42 @@
+{
+  "id": "wangp",
+  "upstream_url": "https://github.com/deepbeepmeep/WanGP",
+  "revision": "2c67e50c8ed2c7074b4060bf6d6372af593a55ec",
+  "patches": [
+    {
+      "path": "patches/engine.patch",
+      "sha256": "300eb7c09f54757c90b68848a8563b3b4ad2ee64c0cd40f69f5b4802eff6a4f2"
+    }
+  ],
+  "patch_target_allowlist": [
+    "mmgp/cuda_graphs.py",
+    "models/minimax_h3/minimax_h3_handler.py",
+    "models/minimax_h3/pipeline.py",
+    "models/minimax_h3/transformer.py",
+    "models/minimax_h3/vsa/graphs.py",
+    "wgp.py"
+  ],
+  "capabilities": [
+    "finite-local-batch-session",
+    "opt-in-h3-vsa-block-graphs",
+    "bounded-cpu-reference-latent-cache",
+    "manifest-scoped-h3-gpu-residency",
+    "process-local-cpu-thread-caps"
+  ],
+  "weight_files_modified": false,
+  "patched_source_sha256": {
+    "mmgp/cuda_graphs.py": "491be187b127fed0c8da9ee3df7c07f56bf88de1a649ffbed38db5ad55aa97c4",
+    "models/minimax_h3/minimax_h3_handler.py": "bb46d3873e7a3fe36d4dc0dc9f5e129ef2b042af3db888d32f86d4d57d49f245",
+    "models/minimax_h3/pipeline.py": "76f59b513e22b8b2d483e635d6fc4da4840c7ed479172b2e77c64d831a243e95",
+    "models/minimax_h3/transformer.py": "047a8e1190c9671b6f187d03b72b85adf6a15bbe76c002ae7eb1526810c9d231",
+    "models/minimax_h3/vsa/graphs.py": "2e49560c7a4c5a421370df5ca53035339463feab1d6bf3a249e48060b4794bfe",
+    "wgp.py": "0a06210dbd392f7531188b340936973ee0aeb6441400f07d150a4da8710e2ffc"
+  },
+  "base_source_sha256": {
+    "mmgp/cuda_graphs.py": "ad5c2f347cbd5a16e73c0e6b1caae4e20e65003ae934a135a9c1b2e2528655d9",
+    "models/minimax_h3/minimax_h3_handler.py": "dd22ce69df659af0c8f7b743f4037807549086049fe613d4f2128d15fa877c22",
+    "models/minimax_h3/pipeline.py": "99c85ddf0cd66ec8d1ee7bdcbec21294c184e18623d27a7bbd3969a25e47ecef",
+    "models/minimax_h3/transformer.py": "313ccad84a5cc2ef3d7fe74cce593f20de7db2a2c1dc1167b32977f2d3b3425e",
+    "wgp.py": "f1729664a937ea7a6e92e5cb5ba77ad4281c34158870e1fa6786c9d66c79ace5"
+  }
+}
